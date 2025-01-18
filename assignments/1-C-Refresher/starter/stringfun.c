@@ -136,7 +136,8 @@ int reverse_buff(char * buff, int len)
     printf("Reversed String: ");
     for (int i = 0; i < len; i++)
     {
-        if (buff[i] == '.') {
+        if (buff[i] == '.')
+        {
             break;
         }
         putchar(buff[i]);
@@ -253,47 +254,49 @@ int main(int argc, char * argv[])
         exit(2);
     }
 
-    switch (opt) {
-    case 'c':
-        rc = count_words(buff, BUFFER_SZ, user_str_len);
-        if (rc < 0)
-        {
-            printf("Error counting words, rc = %d", rc);
-            exit(2);
-        }
-        printf("Word Count: %d\n", rc);
-        break;
+    switch (opt)
+    {
+        case 'c':
+            rc = count_words(buff, BUFFER_SZ, user_str_len);
+            if (rc < 0)
+            {
+                printf("Error counting words, rc = %d", rc);
+                exit(2);
+            }
+            printf("Word Count: %d\n", rc);
+            break;
 
-        //TODO:  #5 Implement the other cases for 'r' and 'w' by extending
-        //       the case statement options
-    case 'r':
-        rc = reverse_buff(buff, user_str_len);
-        if (rc < 0)
-        {
-            printf("Error reversing string, rc = %d", rc);
-            exit(2);
-        }
-        break;
-    case 'w':
-        rc = word_print(buff, user_str_len);
-        if (rc < 0)
-        {
-            printf("Error printing words, rc = %d", rc);
-            exit(2);
-        }
-        break;
-    case 'x':
-        if (argc < 5)
-        {
-            printf("Error not enough arguments.\n");
+            //TODO:  #5 Implement the other cases for 'r' and 'w' by extending
+            //       the case statement options
+        case 'r':
+            rc = reverse_buff(buff, user_str_len);
+            if (rc < 0)
+            {
+                printf("Error reversing string, rc = %d", rc);
+                exit(2);
+            }
+            break;
+        case 'w':
+            rc = word_print(buff, user_str_len);
+            if (rc < 0)
+            {
+                printf("Error printing words, rc = %d", rc);
+                exit(2);
+            }
+            break;
+        case 'x':
+            if (argc < 5)
+            {
+                printf("Error not enough arguments.\n");
+                exit(1);
+            } else 
+            {
+                printf("Not Implemented!\n");
+                exit(3);
+            }
+        default:
+            usage(argv[0]);
             exit(1);
-        } else {
-            printf("Not Implemented!\n");
-            exit(3);
-        }
-    default:
-        usage(argv[0]);
-        exit(1);
     }
 
     //TODO:  #6 Dont forget to free your buffer before exiting
