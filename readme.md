@@ -32,3 +32,4 @@ For each assigment (in its associated directory):
 #### How to Git* Video Guide
 
 See [Submitting Assignments](https://github.com/drexel-systems/sysprog-overview/blob/main/howto/SUBMIT_ASSIGNMENTS.md).
+

@@ -40,7 +40,7 @@ Take a look at the starter code that was provided, note that it should compile a
 
     * Copy over every non-white space character from the user supplied string to the internal buffer.  A white space character could be a space or a tab.
 
-    * Duplicate consequtive whitespace characters must be ignored. For example "`why`&nbsp;&nbsp;&nbsp;`so`&nbsp;&nbsp;&nbsp;&nbsp;`many`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`spaces`" would be processed as "`why so many spaces`" by this function.
+    * When **one or more** whitespace character(s) are encountered in the user supplied it is ignored.  For example, if the user string was `hello there` `buff` would contain `hello there`.  Note if multiple whitespace characters are included in a row they will be compressed.  For example "`why`&nbsp;&nbsp;&nbsp;`so`&nbsp;&nbsp;&nbsp;&nbsp;`many`&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`spaces`" would be processed as "`why so many spaces`" by this function.  Compressing spaces also includes leading and trailing spaces. 
   
     * Whitespace in the output may only be the space char `' '`; other whitespace type chars should be replaced with the space.
     
@@ -52,7 +52,7 @@ Take a look at the starter code that was provided, note that it should compile a
 
 5. Now you are ready to implement the remaining functionality.  The starter code stubs out the *count words* functionality.  Notice how there is a condition for it coded into the `switch` statement in `main()` and a handler function called `count_words()`.  This function accepts 3 arguments:  (a)a pointer to the buffer, (b) the length of the buffer, and (c)the length of the user supplied string. This function should return the number of words in the user supplied string and then print out `Word Count: ###`.  With this as your starter, implement all of the required code for the reverse string (option `-r`) and word print (option `-w`).  The output for these functions should be an error message similar to the one in the template for count words if an error occurs. If an error does not occur then the output should follow:
 
-    *  **For reverse string [-r]:**  `Reversed String: xxxxx` where `xxxxx` is the user supplied string where all of the characters are reversed.  You should only print out the user string and not any of the dot padding in your internal buffer.
+    *  **For reverse string [-r]:**  `Reversed String: xxxxx` where `xxxxx` is the user supplied string where all of the characters are reversed.
 
     * **For word print [-w]:**  Consider the user provided the input `Systems Programming is Great!` the output should be:
       ```

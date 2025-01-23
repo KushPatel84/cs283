@@ -97,8 +97,4 @@ Buffer:  [Lets get a lot of words to test...................]" ]
     run ./stringfun -x "This is a super long string for testing my program" program  app
     [ "$output" = "Buffer:  [This is a super long string for testing my app....]" ] || 
     [ "$output" = "Not Implemented!" ]
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> upstream/main
