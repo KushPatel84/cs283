@@ -5,7 +5,7 @@ Please answer the following questions and submit in your repo for the second ass
 
 1. In this assignment I asked you provide an implementation for the `get_student(...)` function because I think it improves the overall design of the database application.   After you implemented your solution do you agree that externalizing `get_student(...)` into it's own function is a good design strategy?  Briefly describe why or why not.
 
-    > **Answer**:  _start here_
+    > **Answer**:  I think that it is a good idea for having a separate function for get_student(...). We use the get student function in the delete student to find and read the location. If we ever want to add any other functionality that needs to retrieve a student location then we can use the get_student function instead of having to retype the code again wherever it is needed. The function also does different error checks so if we need to add some other restrictions on finding a student we would only have to make changes in there.
 
 2. Another interesting aspect of the `get_student(...)` function is how its function prototype requires the caller to provide the storage for the `student_t` structure:
 
@@ -39,7 +39,7 @@ Please answer the following questions and submit in your repo for the second ass
     ```
     Can you think of any reason why the above implementation would be a **very bad idea** using the C programming language?  Specifically, address why the above code introduces a subtle bug that could be hard to identify at runtime? 
 
-    > **ANSWER:** _start here_
+    > **ANSWER:** The implementation would be a very bad idea because of a subtle bug that could occur. Because student_t student is a local variable and local variables are stored on the memory stack, when the function is returning the memory address of student there may be a bug that occurs if that memory space is overwritten by another function call. This can cause the program to crash which is why the above implementation is not a good idea.
 
 3. Another way the `get_student(...)` function could be implemented is as follows:
 
@@ -72,7 +72,7 @@ Please answer the following questions and submit in your repo for the second ass
     ```
     In this implementation the storage for the student record is allocated on the heap using `malloc()` and passed back to the caller when the function returns. What do you think about this alternative implementation of `get_student(...)`?  Address in your answer why it work work, but also think about any potential problems it could cause.  
     
-    > **ANSWER:** _start here_  
+    > **ANSWER:** This approach solves the problem of the memory space being overwritten on the stack memory. It may work because now it uses malloc to allocate memory for that pointer but you have to remember to free the memory that it uses after the program is complete or there will be a memory leak. 
 
 
 4. Lets take a look at how storage is managed for our simple database. Recall that all student records are stored on disk using the layout of the `student_t` structure (which has a size of 64 bytes).  Lets start with a fresh database by deleting the `student.db` file using the command `rm ./student.db`.  Now that we have an empty database lets add a few students and see what is happening under the covers.  Consider the following sequence of commands:
@@ -102,11 +102,11 @@ Please answer the following questions and submit in your repo for the second ass
 
     - Please explain why the file size reported by the `ls` command was 128 bytes after adding student with ID=1, 256 after adding student with ID=3, and 4160 after adding the student with ID=64? 
 
-        > **ANSWER:** _start here_
+        > **ANSWER:** For ID=1, lseek jumps to the offset that I defined in my program which is id*student record size which is 64. So the offset is 64. Then it is going to write another 64 bytes so it is 64+64. lseek also creates holes by extending the file size. It fills these holes with zeros which creates gaps. After adding a student with ID=1, the ls returned 128 because my code writes 64 bytes onto each id_offset, but the id * the student record size is 64 so the total size is 1*64+64=128. lseek here creates a hole up until the 64th byte, then the write starts from 64 and onwards. For ID=3, it would be 3*64+64=256. Then 4160 with ID=64 because of 64*64+64=4160. Even though the zeros are not being used for storage, it adds to the total file size. ls does not seperate holes, it just returns the entire file size.
 
     -   Why did the total storage used on the disk remain unchanged when we added the student with ID=1, ID=3, and ID=63, but increased from 4K to 8K when we added the student with ID=64? 
 
-        > **ANSWER:** _start here_
+        > **ANSWER:** In linux file systems the smallest unit of data storage is a block and they are defaulted to 4KB. They can be 512 bytes, 1KB, 2KB, 4KB, or 8KB. When the student’s ID=1,3, and 63, all of them fall within the 4KB block so du command shows 4K. ID=63 will be at 63*64+64=4096 bytes which means that this is the exact location where 4KB ends. When you go to ID=64, you are at 64*64+64 = 4160 bytes which means that a new block of size 4KB is needed because it no longer fits under the 4KB size block. So the 4KB block is allocated onto another 4KB block which results in the du command showing 8K for the ID=64 student.
 
     - Now lets add one more student with a large student ID number  and see what happens:
 
@@ -119,4 +119,4 @@ Please answer the following questions and submit in your repo for the second ass
         ```
         We see from above adding a student with a very large student ID (ID=99999) increased the file size to 6400000 as shown by `ls` but the raw storage only increased to 12K as reported by `du`.  Can provide some insight into why this happened?
 
-        > **ANSWER:**  _start here_
+        > **ANSWER:**  When the student with ID=99999 is added, the id offset is going to be in 64*99999 and then write in the next 64 bytes so the total is going to be 64*99999+64=6400000. Ls has no regards for holes or gaps that are filled with zeros up until that student which is why it shows the entire file size as 6400000. However, du does mind the holes from the beginning of the file up until where the actual data was written. The file system doesn’t write blocks for space that is not holding actual data so for students with ID=1,3, and 63 the block of data that is needed is 4K and then for ID=64, the block that is needed is another 4K and then for only that portion with ID=99999, not counting the hole up until that data, another 4K for that data. So the total comes out to 4K+4K+4K which is the resulting 12K for the raw storage from the du command.

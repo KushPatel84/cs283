@@ -59,7 +59,33 @@ int open_db(char *dbFile, bool should_truncate){
  *  console:  Does not produce any console I/O used by other functions
  */
 int get_student(int fd, int id, student_t *s){
-    return NOT_IMPLEMENTED_YET;
+    int id_offset = id * STUDENT_RECORD_SIZE;
+    int seek_pos = lseek(fd, id_offset, SEEK_SET);
+
+    if (seek_pos < 0)
+    {
+        return ERR_DB_FILE;
+    }
+
+    long long record_read = read(fd, s, STUDENT_RECORD_SIZE);
+
+    // no record in that position
+    if (record_read == 0)
+    {
+        return SRCH_NOT_FOUND;
+    }
+
+    if (s->id == 0)
+    {
+        return SRCH_NOT_FOUND;
+    }
+
+    if (record_read == -1)
+    {
+        return ERR_DB_FILE;
+    }
+
+    return NO_ERROR;
 }
 
 /*
@@ -88,8 +114,76 @@ int get_student(int fd, int id, student_t *s){
  *            
  */
 int add_student(int fd, int id, char *fname, char *lname, int gpa){
-    printf(M_NOT_IMPL);
-    return NOT_IMPLEMENTED_YET;
+    int id_offset = id * STUDENT_RECORD_SIZE;
+    int seek_pos = lseek(fd, id_offset, SEEK_SET);
+
+    if (seek_pos < 0)
+    {
+        printf(M_ERR_DB_READ);
+        return ERR_DB_FILE;
+    }
+
+    student_t student_exists;
+    long long record_read = read(fd, &student_exists, STUDENT_RECORD_SIZE);
+
+    if (record_read == -1)
+    {
+        printf(M_ERR_DB_READ);
+        return ERR_DB_FILE;
+    } 
+
+    // treat it was empty first
+    if (record_read == 0)
+    {
+        memset(&student_exists, 0, sizeof(student_exists));
+    }
+
+    // compare with empty record to check if something already exists in that location
+    int compare = memcmp(&student_exists, &EMPTY_STUDENT_RECORD, sizeof(student_exists));
+
+    // record is existing in that location
+    if (compare != 0)
+    {
+        printf(M_ERR_DB_ADD_DUP, id);
+        return ERR_DB_OP;
+    }
+
+    // new student record
+    student_t zero_student_new = {0};
+    zero_student_new.id = id;
+    zero_student_new.gpa = gpa;
+
+    // copy first name over
+    for (long unsigned int i = 0; (i < sizeof(zero_student_new.fname) - 1) && (fname[i] != '\0'); i++)
+    {
+        zero_student_new.fname[i] = fname[i];
+    }
+
+    // copy last name over
+    for (long unsigned int i = 0; (i < sizeof(zero_student_new.lname) - 1) && (lname[i] != '\0'); i++)
+    {
+        zero_student_new.lname[i] = lname[i];
+    }
+
+    // need to seek again to write
+    int seek_write = lseek(fd, id_offset, SEEK_SET);
+    if (seek_write < 0)
+    {
+        printf(M_ERR_DB_READ);
+        return ERR_DB_FILE;
+    }
+
+    // write in the new student
+    long long record_write = write(fd, &zero_student_new, STUDENT_RECORD_SIZE);
+    if (record_write == -1)
+    {
+        printf(M_ERR_DB_WRITE);
+        return ERR_DB_FILE;
+    }
+
+    printf(M_STD_ADDED, id);
+
+    return NO_ERROR;
 }
 
 /*
@@ -115,8 +209,41 @@ int add_student(int fd, int id, char *fname, char *lname, int gpa){
  *            
  */
 int del_student(int fd, int id){
-    printf(M_NOT_IMPL);
-    return NOT_IMPLEMENTED_YET;
+    int id_offset = id * STUDENT_RECORD_SIZE;
+
+    // need to check if the student exists in the db
+    student_t student_found;
+    int get_student_return = get_student(fd, id, &student_found);
+    int seek_pos = lseek(fd, id_offset, SEEK_SET);
+
+    if (get_student_return == SRCH_NOT_FOUND)
+    {
+        printf(M_STD_NOT_FND_MSG, id);
+        return ERR_DB_OP;
+    } 
+    else if (get_student_return < 0)
+    {
+        printf(M_ERR_DB_READ);
+        return ERR_DB_FILE;
+    }
+    else if (seek_pos < 0)
+    {
+        printf(M_ERR_DB_READ);
+        return ERR_DB_FILE;
+    }
+
+    // write in an empty record in that location
+    long long record_write = write(fd, &EMPTY_STUDENT_RECORD, STUDENT_RECORD_SIZE);
+    
+    if (record_write == -1)
+    {
+        printf(M_ERR_DB_WRITE);
+        return ERR_DB_FILE;
+    }
+
+    printf(M_STD_DEL_MSG, id);
+    
+    return NO_ERROR;
 }
 
 /*
@@ -144,8 +271,45 @@ int del_student(int fd, int id){
  *            
  */
 int count_db_records(int fd){
-    printf(M_NOT_IMPL);
-    return NOT_IMPLEMENTED_YET;
+    int seek_pos = lseek(fd, 0, SEEK_SET);
+    if (seek_pos < 0)
+    {
+        printf(M_ERR_DB_READ);
+        return ERR_DB_FILE;
+    }
+
+    int record_count = 0;
+    student_t records;
+    long long record_read = read(fd, &records, STUDENT_RECORD_SIZE);
+
+    // counts non empty records from the start
+    while (record_read > 0)
+    {
+        //check if the record is zero to see if it is empty
+        int record_empty = memcmp(&records, &EMPTY_STUDENT_RECORD, sizeof(records));
+
+        if (record_empty != 0)
+        {
+            record_count++;
+        }
+
+        record_read = read(fd, &records, STUDENT_RECORD_SIZE);
+    }
+
+    if (record_read == -1)
+    {
+        printf(M_ERR_DB_READ);
+        return ERR_DB_FILE;
+    }
+
+    if (record_count == 0)
+    {
+        printf(M_DB_EMPTY);
+    } else {
+        printf(M_DB_RECORD_CNT, record_count);
+    }
+
+    return record_count;
 }
 
 /*
@@ -182,8 +346,51 @@ int count_db_records(int fd){
  *            
  */
 int print_db(int fd){
-    printf(M_NOT_IMPL);
-    return NOT_IMPLEMENTED_YET;
+    int seek_pos = lseek(fd, 0, SEEK_SET);
+    if (seek_pos < 0)
+    {
+        printf(M_ERR_DB_READ);
+        return ERR_DB_FILE;
+    }
+
+    int record_count = 0;
+    student_t records;
+    long long record_read = read(fd, &records, STUDENT_RECORD_SIZE);
+
+    // reads all the records in the db and prints them out
+    while (record_read > 0)
+    {
+        int record_empty = memcmp(&records, &EMPTY_STUDENT_RECORD, sizeof(records));
+
+        if (record_empty != 0)
+        {
+            float gpa = records.gpa / 100.0;
+            
+            // need to print the header if we find a record
+            if (record_count == 0)
+            {
+                printf(STUDENT_PRINT_HDR_STRING, "ID","FIRST NAME", "LAST_NAME", "GPA");
+            }
+            
+            // print the record and increment the counter
+            printf(STUDENT_PRINT_FMT_STRING, records.id, records.fname,records.lname, gpa);
+            record_count++;
+        }
+        record_read = read(fd, &records, STUDENT_RECORD_SIZE);
+    }
+
+    if (record_read == -1)
+    {
+        printf(M_ERR_DB_READ);
+        return ERR_DB_FILE;
+    }
+
+    if (record_count == 0)
+    {
+        printf(M_DB_EMPTY);
+    }
+
+    return NO_ERROR;
 }
 
 /*
@@ -215,7 +422,14 @@ int print_db(int fd){
  *            
  */
 void print_student(student_t *s){
-    printf(M_NOT_IMPL);
+    float gpa = s->gpa / 100.0;
+    if (!s || s->id == 0)
+    {
+        printf(M_ERR_STD_PRINT);
+        return;
+    }
+    printf(STUDENT_PRINT_HDR_STRING, "ID","FIRST NAME", "LAST_NAME", "GPA");
+    printf(STUDENT_PRINT_FMT_STRING, s->id, s->fname,s->lname, gpa);
 }
 
 /*
