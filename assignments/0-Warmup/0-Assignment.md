@@ -44,8 +44,12 @@ Out of this systems programming class I hope to get knowledge on the connections
 
 5. Briefly describe any concerns you might be having with being successful in this class (if any).
 
+<<<<<<< HEAD
 A concern that I have in this class for myself particularly is motivation to learn about the hardware aspects of a computer. I am not interested as much in the hardware aspects in computer science as the software side but I do know that hardware is still important knowledge to have. I am trying to focus on the fact that this is something that I need to know even if it is not that interesting to me.
 =======
 5. Briefly describe any concerns you might be having with being successful in this class (if any).
+
+>>>>>>> upstream/main
+=======
 
 >>>>>>> upstream/main
