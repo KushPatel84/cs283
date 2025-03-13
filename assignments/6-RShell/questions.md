@@ -1,19 +1,19 @@
 1. How does the remote client determine when a command's output is fully received from the server, and what techniques can be used to handle partial reads or ensure complete message transmission?
 
-_answer here_
+The remove client determines when a command's output is fully recieved by using end of message delimiter (RDSH_EOF_CHAR). TCP is a stream, therefore the protocol designer is responsible for managing where messages begin and end there are many common techniques for this, but one of the simplest ways is to use an end of stream marker.  Since rsh is a "shell" program we will be using ascii code 0x04, which is commonly used as the end-of-file (EOF) character in linux based systems. Because TCP is a stream and the data may arrive in multiple parts, reading until an EOF character can help make sure that the complete message tranmission is recieved. Each time it checks to make sure that the last character is either an EOF character or not, that's how it will know if the complete message is recieved. The easiest technique involves using a special character to mark the end of a logical stream, and then loop `recv()` calls until we receive the character that we expect, which is our constant RDSH_EOF_CHAR in this case.  
 
 2. This week's lecture on TCP explains that it is a reliable stream protocol rather than a message-oriented one. Since TCP does not preserve message boundaries, how should a networked shell protocol define and detect the beginning and end of a command sent over a TCP connection? What challenges arise if this is not handled correctly?
 
-_answer here_
+A networked shell should define and detect the beginning and end of a command sent over a TCP connection by the use of a null byte. For the remote dsh program we will use the null byte `\0` as our end of stream delimiters for requests sent by the dsh client to the server. On the way back we will use the ASCII code 0x04 or EOF character to indicate the end of the stream. The challenges that may arise if this is not handled correctly would be that we may get multiple commands that are merged together because the end was never recognized, or you could get a single command that was detected as the end of a command halfway through the command. Many different issues could arise if this was not handled properly. 
 
 3. Describe the general differences between stateful and stateless protocols.
 
-_answer here_
+A stateless protocol does not require the server to retain/save or keep track of what happened during past interactions. It treats every request independently. It doesn’t remember anything about the previous request, this means that everytime a new request is made, all of the information needed must be included. The opposite is true for a stateful protocol. A stateful protocol does require the server to retain what happened during previous requests. It will store information about the previous interactions so that the new requests may use what is stored. This means that not all of the information needs to be included again in the new request because the information may have been saved in previous steps.
 
 4. Our lecture this week stated that UDP is "unreliable". If that is the case, why would we ever use it?
 
-_answer here_
+We would use UDP even though it is "unreliable" because it is useful for live and real-time data transmission. Whenever speed is the main factor, UDP would be useful. It is speedy and efficient, it starts the connection quicker, delivers data at a lower latency than TCP, and uses fewer resources. The tradeoff with this is that UDP does not have an order of transmission, meaning that if the data was sent in incorrect sequencing, we would not be able to fix that issue. It is extremely good for live data transmission, which is why it is used.
 
 5. What interface/abstraction is provided by the operating system to enable applications to use network communications?
 
-_answer here_
+The operating system provides an API that applications use for network communications. It provides them capabilities of network communication through network sockets. The API allows applications to create and use network sockets to send and recieve data over a network. They are basically the endpoints of the API that allow for different applications to communicate and send data from and to eachother. 
